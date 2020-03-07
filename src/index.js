@@ -37,49 +37,58 @@ function expressionCalculator(expr) {
 
   let numbers = [];
   let operators = [];
-  let inputArr = [];
 
- if (expr.includes(' ')) {
-   inputArr = expr.split(' ');
- } else {
-   inputArr = expr.split('');
- }
-
-  for (let i = 0; i < inputArr.length; i++) {
-    if (inputArr[i] === '(') {
-      operators.push(inputArr[i])
+  for (let i = 0; i < expr.length; i++) {
+    if (expr[i] === '(') {
+      operators.push(expr[i])
     }
-    if (inputArr[i] === ')') {
-      while(operators[operators.length - 1] !== '(') {
+
+    if (expr[i] === ')') {
+      while(operators[operators.length - 1] !== '(' && operators.length) {
         let currentResult = doMath(numbers[numbers.length - 2], numbers[numbers.length - 1], operators[operators.length - 1]);
         numbers.pop();
         numbers.pop();
         operators.pop();
         numbers.push(currentResult);
+        if (!operators.length) {
+          throw new Error('ExpressionError: Brackets must be paired');
+        }
       }
       operators.pop();
+
     }
-    if (Number.parseInt(inputArr[i], 10) || inputArr[i] === '0') {
-      numbers.push(Number(inputArr[i]));
+
+    if (!isNaN(parseInt(expr[i], 10)) && isNaN(parseInt(expr[i + 1], 10)) && isNaN(parseInt(expr[i - 1], 10))) {
+      numbers.push(Number(expr[i]));
+    } else if (!isNaN(parseInt(expr[i], 10)) && !isNaN(parseInt(expr[i + 1], 10))) {
+      let multiNumber = expr[i];
+
+      while (!isNaN(parseInt(expr[i + 1], 10))) {
+        multiNumber = multiNumber + expr[i + 1];
+        i++;
+      }
+
+      numbers.push(Number(multiNumber));
     }
-    if (!Number.parseInt(inputArr[i], 10) && inputArr[i] && inputArr[i] !== '(' && inputArr[i] !== ')' && inputArr[i] !== '0') {
+
+    if (isNaN(parseInt(expr[i], 10)) && expr[i] !== ' ' && expr[i] !== '(' && expr[i] !== ')') {
       if (operators.length) {
-        while (priority[inputArr[i]] <= priority[operators[operators.length - 1]] && priority[operators[operators.length - 1]]) {
+        while (priority[expr[i]] <= priority[operators[operators.length - 1]] && priority[operators[operators.length - 1]]) {
           let currentResult = doMath(numbers[numbers.length - 2], numbers[numbers.length - 1], operators[operators.length - 1]);
           numbers.pop();
           numbers.pop();
           operators.pop();
           numbers.push(currentResult);
         }
-        operators.push(inputArr[i])
+        operators.push(expr[i])
       } else {
-        operators.push(inputArr[i])
+        operators.push(expr[i])
       }
     }
   }
 
   while (operators.length) {
-    if (operators[operators.length - 1] === ')' || operators[operators.length - 1] === '(') {
+    if (operators[operators.length - 1] === '(') {
       throw new Error('ExpressionError: Brackets must be paired');
     } else {
       let currentResult = doMath(numbers[numbers.length - 2], numbers[numbers.length - 1], operators[operators.length - 1]);
